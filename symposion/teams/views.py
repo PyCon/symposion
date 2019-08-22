@@ -5,7 +5,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.utils.translation import ugettext_lazy as _
 
-from account.decorators import login_required
+from django.contrib.auth.decorators import login_required
 
 from symposion.utils.mail import send_email
 from symposion.teams.forms import TeamInvitationForm

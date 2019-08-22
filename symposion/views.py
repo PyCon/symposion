@@ -2,8 +2,7 @@ from __future__ import unicode_literals
 
 from django.shortcuts import render, redirect
 
-
-from account.decorators import login_required
+from django.contrib.auth.decorators import login_required
 
 
 @login_required

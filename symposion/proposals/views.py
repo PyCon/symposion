@@ -16,7 +16,7 @@ from django.contrib.auth.models import User
 
 from django.utils.translation import ugettext_lazy as _
 
-from account.decorators import login_required
+from django.contrib.auth.decorators import login_required
 from account.models import EmailAddress
 
 from symposion.proposals.models import (

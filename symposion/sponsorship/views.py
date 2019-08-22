@@ -18,7 +18,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.template import RequestContext
 from django.utils.translation import ugettext_lazy as _
 
-from account.decorators import login_required
+from django.contrib.auth.decorators import login_required
 
 from symposion.sponsorship.forms import SponsorApplicationForm, \
     SponsorDetailsForm, SponsorBenefitsFormSet
