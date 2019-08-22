@@ -114,7 +114,7 @@ def speaker_edit(request, pk=None):
             return redirect("speaker_create")
     else:
         if request.user.is_staff:
-            speaker = get_object_or_404(Speaker, pk=pk)
+            speaker = get_object_or_404(SpeakerModel, pk=pk)
         else:
             raise Http404()
 
@@ -133,7 +133,7 @@ def speaker_edit(request, pk=None):
 
 
 def speaker_profile(request, pk):
-    speaker = get_object_or_404(Speaker, pk=pk)
+    speaker = get_object_or_404(SpeakerModel, pk=pk)
     presentations = speaker.all_presentations
     if not presentations and not request.user.is_staff:
         raise Http404()
