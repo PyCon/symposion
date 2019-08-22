@@ -2,16 +2,17 @@ from __future__ import unicode_literals
 import os
 import uuid
 
-from django.core.urlresolvers import reverse
 from django.db import models
 from django.db.models import Q
+from django.urls import reverse
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 from django.utils.timezone import now
 
-from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import ValidationError
+
+from django.contrib.auth import get_user_model
 
 from model_utils.managers import InheritanceManager
 from reversion import revisions as reversion
@@ -20,6 +21,9 @@ from symposion.markdown_parser import parse
 from symposion.conference.models import Section
 from symposion.speakers.models import SpeakerBase as Speaker
 from symposion.utils import anonymous_review
+
+
+User = get_user_model()
 
 
 @python_2_unicode_compatible
@@ -33,7 +37,7 @@ class ProposalSection(models.Model):
       * closed is NULL or False
     """
 
-    section = models.OneToOneField(Section, verbose_name=_("Section"))
+    section = models.OneToOneField(Section, verbose_name=_("Section"), on_delete=models.CASCADE)
 
     start = models.DateTimeField(null=True, blank=True, verbose_name=_("Start"))
     end = models.DateTimeField(null=True, blank=True, verbose_name=_("End"))
@@ -77,7 +81,7 @@ class ProposalKind(models.Model):
     to distinguish the section as well as the kind.
     """
 
-    section = models.ForeignKey(Section, related_name="proposal_kinds", verbose_name=_("Section"))
+    section = models.ForeignKey(Section, related_name="proposal_kinds", verbose_name=_("Section"), on_delete=models.CASCADE)
 
     name = models.CharField(_("Name"), max_length=100)
     slug = models.SlugField(verbose_name=_("Slug"))
@@ -91,7 +95,7 @@ class ProposalBase(models.Model):
 
     objects = InheritanceManager()
 
-    kind = models.ForeignKey(ProposalKind, verbose_name=_("Kind"))
+    kind = models.ForeignKey(ProposalKind, verbose_name=_("Kind"), on_delete=models.CASCADE)
 
     title = models.CharField(max_length=100, verbose_name=_("Title"))
     description = models.TextField(
@@ -123,7 +127,7 @@ class ProposalBase(models.Model):
         editable=False,
         verbose_name=_("Submitted")
     )
-    speaker = models.ForeignKey(Speaker, related_name="proposals", verbose_name=_("Speaker"))
+    speaker = models.ForeignKey(Speaker, related_name="proposals", verbose_name=_("Speaker"), on_delete=models.CASCADE)
 
     # @@@ this validation used to exist as a validators keyword on additional_speakers
     #     M2M field but that is no longer supported by Django. Should be moved to
@@ -218,8 +222,8 @@ class AdditionalSpeaker(models.Model):
         (SPEAKING_STATUS_DECLINED, _("Declined")),
     ]
 
-    speaker = models.ForeignKey(Speaker, verbose_name=_("Speaker"))
-    proposalbase = models.ForeignKey(ProposalBase, verbose_name=_("Proposalbase"))
+    speaker = models.ForeignKey(Speaker, verbose_name=_("Speaker"), on_delete=models.CASCADE)
+    proposalbase = models.ForeignKey(ProposalBase, verbose_name=_("Proposalbase"), on_delete=models.CASCADE)
     status = models.IntegerField(choices=SPEAKING_STATUS, default=SPEAKING_STATUS_PENDING, verbose_name=_("Status"))
 
     class Meta:
@@ -244,9 +248,9 @@ def uuid_filename(instance, filename):
 
 class SupportingDocument(models.Model):
 
-    proposal = models.ForeignKey(ProposalBase, related_name="supporting_documents", verbose_name=_("Proposal"))
+    proposal = models.ForeignKey(ProposalBase, related_name="supporting_documents", verbose_name=_("Proposal"), on_delete=models.CASCADE)
 
-    uploaded_by = models.ForeignKey(User, verbose_name=_("Uploaded by"))
+    uploaded_by = models.ForeignKey(User, verbose_name=_("Uploaded by"), on_delete=models.CASCADE)
 
     created_at = models.DateTimeField(default=now, verbose_name=_("Created at"))
 

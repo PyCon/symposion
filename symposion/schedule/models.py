@@ -3,21 +3,24 @@ from __future__ import unicode_literals
 import datetime
 
 from django.core.exceptions import ObjectDoesNotExist
-from django.contrib.auth.models import User
 from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
+
+from django.contrib.auth import get_user_model
 
 from symposion.markdown_parser import parse
 from symposion.proposals.models import ProposalBase
 from symposion.conference.models import Section
 from symposion.speakers.models import SpeakerBase as Speaker
 
+User = get_user_model()
+
 
 @python_2_unicode_compatible
 class Schedule(models.Model):
 
-    section = models.OneToOneField(Section, verbose_name=_("Section"))
+    section = models.OneToOneField(Section, verbose_name=_("Section"), on_delete=models.CASCADE)
     published = models.BooleanField(default=True, verbose_name=_("Published"))
     hidden = models.BooleanField(_("Hide schedule from overall conference view"), default=False)
 
@@ -33,7 +36,7 @@ class Schedule(models.Model):
 @python_2_unicode_compatible
 class Day(models.Model):
 
-    schedule = models.ForeignKey(Schedule, verbose_name=_("Schedule"))
+    schedule = models.ForeignKey(Schedule, verbose_name=_("Schedule"), on_delete=models.CASCADE)
     date = models.DateField(verbose_name=_("Date"))
 
     def __str__(self):
@@ -49,7 +52,7 @@ class Day(models.Model):
 @python_2_unicode_compatible
 class Room(models.Model):
 
-    schedule = models.ForeignKey(Schedule, verbose_name=_("Schedule"))
+    schedule = models.ForeignKey(Schedule, verbose_name=_("Schedule"), on_delete=models.CASCADE)
     name = models.CharField(max_length=65, verbose_name=_("Name"))
     order = models.PositiveIntegerField(verbose_name=_("Order"))
 
@@ -68,7 +71,7 @@ class SlotKind(models.Model):
     break, lunch, or X-minute talk.
     """
 
-    schedule = models.ForeignKey(Schedule, verbose_name=_("schedule"))
+    schedule = models.ForeignKey(Schedule, verbose_name=_("schedule"), on_delete=models.CASCADE)
     label = models.CharField(max_length=50, verbose_name=_("Label"))
 
     def __str__(self):
@@ -83,8 +86,8 @@ class SlotKind(models.Model):
 class Slot(models.Model):
 
     name = models.CharField(max_length=100, editable=False)
-    day = models.ForeignKey(Day, verbose_name=_("Day"))
-    kind = models.ForeignKey(SlotKind, verbose_name=_("Kind"))
+    day = models.ForeignKey(Day, verbose_name=_("Day"), on_delete=models.CASCADE)
+    kind = models.ForeignKey(SlotKind, verbose_name=_("Kind"), on_delete=models.CASCADE)
     start = models.TimeField(verbose_name=_("Start"))
     end = models.TimeField(verbose_name=_("End"))
     content_override = models.TextField(blank=True, verbose_name=_("Content override"))
@@ -167,8 +170,8 @@ class SlotRoom(models.Model):
     Links a slot with a room.
     """
 
-    slot = models.ForeignKey(Slot, verbose_name=_("Slot"))
-    room = models.ForeignKey(Room, verbose_name=_("Room"))
+    slot = models.ForeignKey(Slot, verbose_name=_("Slot"), on_delete=models.CASCADE)
+    room = models.ForeignKey(Room, verbose_name=_("Room"), on_delete=models.CASCADE)
 
     def __str__(self):
         return "%s %s" % (self.room, self.slot)
@@ -183,18 +186,18 @@ class SlotRoom(models.Model):
 @python_2_unicode_compatible
 class Presentation(models.Model):
 
-    slot = models.OneToOneField(Slot, null=True, blank=True, related_name="content_ptr", verbose_name=_("Slot"))
+    slot = models.OneToOneField(Slot, null=True, blank=True, related_name="content_ptr", verbose_name=_("Slot"), on_delete=models.CASCADE)
     title = models.CharField(max_length=100, verbose_name=_("Title"))
     description = models.TextField(verbose_name=_("Description"))
     description_html = models.TextField(blank=True)
     abstract = models.TextField(verbose_name=_("Abstract"))
     abstract_html = models.TextField(blank=True)
-    speaker = models.ForeignKey(Speaker, related_name="presentations", verbose_name=_("Speaker"))
+    speaker = models.ForeignKey(Speaker, related_name="presentations", verbose_name=_("Speaker"), on_delete=models.CASCADE)
     additional_speakers = models.ManyToManyField(Speaker, related_name="copresentations",
                                                  blank=True, verbose_name=_("Additional speakers"))
     cancelled = models.BooleanField(default=False, verbose_name=_("Cancelled"))
-    proposal_base = models.OneToOneField(ProposalBase, related_name="presentation", verbose_name=_("Proposal base"))
-    section = models.ForeignKey(Section, related_name="presentations", verbose_name=_("Section"))
+    proposal_base = models.OneToOneField(ProposalBase, related_name="presentation", verbose_name=_("Proposal base"), on_delete=models.CASCADE)
+    section = models.ForeignKey(Section, related_name="presentations", verbose_name=_("Section"), on_delete=models.CASCADE)
 
     def save(self, *args, **kwargs):
         self.description_html = parse(self.description)
@@ -229,7 +232,7 @@ class Presentation(models.Model):
 @python_2_unicode_compatible
 class Session(models.Model):
 
-    day = models.ForeignKey(Day, related_name="sessions", verbose_name=_("Day"))
+    day = models.ForeignKey(Day, related_name="sessions", verbose_name=_("Day"), on_delete=models.CASCADE)
     slots = models.ManyToManyField(Slot, related_name="sessions", verbose_name=_("Slots"))
 
     def sorted_slots(self):
@@ -276,8 +279,8 @@ class SessionRole(models.Model):
         (SESSION_ROLE_RUNNER, _("Session Runner")),
     ]
 
-    session = models.ForeignKey(Session, verbose_name=_("Session"))
-    user = models.ForeignKey(User, verbose_name=_("User"))
+    session = models.ForeignKey(Session, verbose_name=_("Session"), on_delete=models.CASCADE)
+    user = models.ForeignKey(User, verbose_name=_("User"), on_delete=models.CASCADE)
     role = models.IntegerField(choices=SESSION_ROLE_TYPES, verbose_name=_("Role"))
     status = models.NullBooleanField(verbose_name=_("Status"))
 

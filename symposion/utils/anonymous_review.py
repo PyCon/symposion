@@ -30,7 +30,6 @@ class ProposalProxy(object):
                 yield Parrot("Additional speaker " + str(i))
 
     def _redact(self, val, replacement="REDACTED"):
-        print self.__proposal__.speakers()
         full_names = [str(i) for i in self.__proposal__.speakers()]
         individual_names = [j for i in full_names for j in i.split()]
         val = self._replaceany(val, full_names, replacement)

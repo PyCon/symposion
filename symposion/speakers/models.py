@@ -3,13 +3,13 @@ from __future__ import unicode_literals
 import datetime
 import os
 
-from django.core.urlresolvers import reverse
 from django.db import models
+from django.urls import reverse
 from django.utils.deconstruct import deconstructible
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 
 from model_utils.managers import InheritanceManager
 
@@ -17,6 +17,8 @@ from uuid import uuid4
 
 from symposion.markdown_parser import parse
 from symposion.utils.loader import object_from_settings
+
+User = get_user_model()
 
 
 def speaker_model():
@@ -55,7 +57,7 @@ class SpeakerBase(models.Model):
     def subclass(self):
         return SpeakerBase.objects.get_subclass(id=self.id)
 
-    user = models.OneToOneField(User, null=True, related_name="speaker_profile", verbose_name=_("User"))
+    user = models.OneToOneField(User, null=True, related_name="speaker_profile", verbose_name=_("User"), on_delete=models.CASCADE)
     name = models.CharField(verbose_name=_("Name"), max_length=100,
                             help_text=_("As you would like it to appear in the"
                                         " conference program."))

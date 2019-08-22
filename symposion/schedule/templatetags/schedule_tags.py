@@ -9,7 +9,7 @@ from itertools import chain
 register = template.Library()
 
 
-@register.assignment_tag
+@register.simple_tag
 def speakers(slug=None):
     """
     {% speakers as speakers %}

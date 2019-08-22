@@ -3,12 +3,16 @@ from __future__ import unicode_literals
 import datetime
 
 from django.db import models
+from django.urls import reverse
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 
-from django.contrib.auth.models import Permission, User
+from django.contrib.auth.models import Permission
+from django.contrib.auth import get_user_model
 
 from reversion import revisions as reversion
+
+User = get_user_model()
 
 
 TEAM_ACCESS_CHOICES = [
@@ -40,9 +44,8 @@ class Team(models.Model):
     created = models.DateTimeField(default=datetime.datetime.now,
                                    editable=False, verbose_name=_("Created"))
 
-    @models.permalink
     def get_absolute_url(self):
-        return ("team_detail", [self.slug])
+        return reverse("team_detail", [self.slug])
 
     def __str__(self):
         return self.name
@@ -82,9 +85,9 @@ MEMBERSHIP_STATE_CHOICES = [
 class Membership(models.Model):
 
     user = models.ForeignKey(User, related_name="memberships",
-                             verbose_name=_("User"))
+                             verbose_name=_("User"), on_delete=models.CASCADE)
     team = models.ForeignKey(Team, related_name="memberships",
-                             verbose_name=_("Team"))
+                             verbose_name=_("Team"), on_delete=models.CASCADE)
     state = models.CharField(max_length=20, choices=MEMBERSHIP_STATE_CHOICES,
                              verbose_name=_("State"))
     message = models.TextField(blank=True, verbose_name=_("Message"))

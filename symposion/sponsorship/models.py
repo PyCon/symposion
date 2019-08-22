@@ -4,16 +4,18 @@ import datetime
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.core.urlresolvers import reverse
 from django.db import models
 from django.db.models.signals import post_init, post_save
+from django.urls import reverse
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 
 from symposion.conference.models import Conference
 from symposion.sponsorship.managers import SponsorManager
+
+User = get_user_model()
 
 
 # The benefits we track as individual fields on sponsors
@@ -48,7 +50,7 @@ BENEFITS = [
 @python_2_unicode_compatible
 class SponsorLevel(models.Model):
 
-    conference = models.ForeignKey(Conference, verbose_name=_("Conference"))
+    conference = models.ForeignKey(Conference, verbose_name=_("Conference"), on_delete=models.CASCADE)
     name = models.CharField(_("Name"), max_length=100)
     order = models.IntegerField(_("Order"), default=0)
     cost = models.PositiveIntegerField(_("Cost"))
@@ -70,7 +72,7 @@ class SponsorLevel(models.Model):
 class Sponsor(models.Model):
 
     applicant = models.ForeignKey(User, related_name="sponsorships", verbose_name=_("Applicant"),
-                                  null=True)
+                                  null=True, on_delete=models.CASCADE)
 
     name = models.CharField(_("Sponsor Name"), max_length=100)
     display_url = models.URLField(_("display URL"), blank=True)
@@ -78,13 +80,13 @@ class Sponsor(models.Model):
     annotation = models.TextField(_("Annotation"), blank=True)
     contact_name = models.CharField(_("Contact Name"), max_length=100)
     contact_email = models.EmailField(_("Contact Email"))
-    level = models.ForeignKey(SponsorLevel, verbose_name=_("level"))
+    level = models.ForeignKey(SponsorLevel, verbose_name=_("level"), on_delete=models.CASCADE)
     added = models.DateTimeField(_("added"), default=datetime.datetime.now)
     active = models.BooleanField(_("active"), default=False)
 
     # Denormalization (this assumes only one logo)
     sponsor_logo = models.ForeignKey("SponsorBenefit", related_name="+", null=True, blank=True,
-                                     editable=False, verbose_name=_("Sponsor logo"))
+                                     editable=False, verbose_name=_("Sponsor logo"), on_delete=models.CASCADE)
 
     # Whether things are complete
     # True = complete, False = incomplate, Null = n/a for this sponsor level
@@ -245,8 +247,8 @@ class Benefit(models.Model):
 @python_2_unicode_compatible
 class BenefitLevel(models.Model):
 
-    benefit = models.ForeignKey(Benefit, related_name="benefit_levels", verbose_name=_("Benefit"))
-    level = models.ForeignKey(SponsorLevel, related_name="benefit_levels", verbose_name=_("Level"))
+    benefit = models.ForeignKey(Benefit, related_name="benefit_levels", verbose_name=_("Benefit"), on_delete=models.CASCADE)
+    level = models.ForeignKey(SponsorLevel, related_name="benefit_levels", verbose_name=_("Level"), on_delete=models.CASCADE)
 
     # default limits for this benefit at given level
     max_words = models.PositiveIntegerField(_("Max words"), blank=True, null=True)
@@ -264,8 +266,8 @@ class BenefitLevel(models.Model):
 @python_2_unicode_compatible
 class SponsorBenefit(models.Model):
 
-    sponsor = models.ForeignKey(Sponsor, related_name="sponsor_benefits", verbose_name=_("Sponsor"))
-    benefit = models.ForeignKey(Benefit, related_name="sponsor_benefits", verbose_name=_("Benefit"))
+    sponsor = models.ForeignKey(Sponsor, related_name="sponsor_benefits", verbose_name=_("Sponsor"), on_delete=models.CASCADE)
+    benefit = models.ForeignKey(Benefit, related_name="sponsor_benefits", verbose_name=_("Benefit"), on_delete=models.CASCADE)
     active = models.BooleanField(default=True, verbose_name=_("Active"))
 
     # Limits: will initially be set to defaults from corresponding BenefitLevel
