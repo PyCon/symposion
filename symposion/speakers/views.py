@@ -82,7 +82,7 @@ def speaker_create_staff(request, pk):
 def speaker_create_token(request, token):
     speaker = get_object_or_404(SpeakerModel, invite_token=token)
     request.session["pending-token"] = token
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         # check for speaker profile
         try:
             existing_speaker = request.user.speaker_profile
@@ -100,9 +100,9 @@ def speaker_create_token(request, token):
                                      "talk proposals"))
             return redirect("dashboard")
     else:
-        if not request.user.is_authenticated():
+        if not request.user.is_authenticated:
             return redirect("account_login")
-    return redirect("speaker_create")
+    return redirect("symposion_speakers:speaker_create")
 
 
 @login_required
@@ -111,7 +111,7 @@ def speaker_edit(request, pk=None):
         try:
             speaker = request.user.speaker_profile.subclass()
         except SpeakerModel.DoesNotExist:
-            return redirect("speaker_create")
+            return redirect("symposion_speakers:speaker_create")
     else:
         if request.user.is_staff:
             speaker = get_object_or_404(SpeakerModel, pk=pk)

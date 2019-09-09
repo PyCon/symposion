@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
-import hashlib
 import random
 import sys
+import secrets
 
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
@@ -12,12 +12,12 @@ from django.urls import reverse
 from django.views import static
 
 from django.contrib import messages
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 
 from django.utils.translation import ugettext_lazy as _
 
 from django.contrib.auth.decorators import login_required
-from account.models import EmailAddress
+from allauth.account.models import EmailAddress
 
 from symposion.proposals.models import (
     ProposalBase, ProposalSection, ProposalKind
@@ -33,11 +33,12 @@ from symposion.proposals.forms import (
 )
 
 
+User = get_user_model()
 SpeakerModel = speaker_model()
 
 
 def proposal_submit(request):
-    if not request.user.is_authenticated():
+    if not request.user.is_authenticated:
         messages.info(request, _("To submit a proposal, please "
                                  "<a href='{0}'>log in</a> and create a speaker profile "
                                  "via the dashboard.".format(settings.LOGIN_URL)))
@@ -46,7 +47,7 @@ def proposal_submit(request):
         try:
             request.user.speaker_profile
         except ObjectDoesNotExist:
-            url = reverse("speaker_create")
+            url = reverse("symposion:speaker_create")
             messages.info(request, _("To submit a proposal, first "
                                      "<a href='{0}'>create a speaker "
                                      "profile</a>.".format(url)))
@@ -66,7 +67,7 @@ def proposal_submit_kind(request, kind_slug):
 
     kind = get_object_or_404(ProposalKind, slug=kind_slug)
 
-    if not request.user.is_authenticated():
+    if not request.user.is_authenticated:
         return redirect("home")  # @@@ unauth'd speaker info page?
     else:
         try:
@@ -89,7 +90,7 @@ def proposal_submit_kind(request, kind_slug):
             form.save_m2m()
             messages.success(request, _("Proposal submitted."))
             if "add-speakers" in request.POST:
-                return redirect("proposal_speaker_manage", proposal.pk)
+                return redirect("symposion_proposals:proposal_speaker_manage", proposal.pk)
             return redirect("dashboard")
     else:
         form = form_class()
@@ -124,8 +125,7 @@ def proposal_speaker_manage(request, pk):
                         Q(user=None, invite_email=email_address)
                     )
                 except SpeakerModel.DoesNotExist:
-                    salt = hashlib.sha1(str(random.random())).hexdigest()[:5]
-                    token = hashlib.sha1(salt + email_address).hexdigest()
+                    token = secrets.token_urlsafe(20)
                     pending = SpeakerModel.objects.create(
                         invite_email=email_address,
                         invite_token=token,
@@ -169,7 +169,7 @@ def proposal_speaker_manage(request, pk):
             invitation, created = AdditionalSpeaker.objects.get_or_create(
                 proposalbase=proposal.proposalbase_ptr, speaker=speaker)
             messages.success(request, "Speaker invited to proposal.")
-            return redirect("proposal_speaker_manage", proposal.pk)
+            return redirect("symposion_proposals:proposal_speaker_manage", proposal.pk)
     else:
         add_speaker_form = AddSpeakerForm(proposal=proposal)
     ctx = {
@@ -224,7 +224,7 @@ def proposal_edit(request, pk):
                         context=ctx
                     )
             messages.success(request, "Proposal updated.")
-            return redirect("proposal_detail", proposal.pk)
+            return redirect("symposion_proposals:proposal_detail", proposal.pk)
     else:
         form = form_class(instance=proposal)
 
