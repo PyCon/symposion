@@ -76,7 +76,7 @@ def proposal_submit_kind(request, kind_slug):
             return redirect("dashboard")
 
     if not kind.section.proposalsection.is_available():
-        return redirect("proposal_submit")
+        return redirect("symposion_proposals:proposal_submit")
 
     form_class = import_named_object(settings.PROPOSAL_FORMS[kind_slug])
 
