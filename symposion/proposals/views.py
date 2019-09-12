@@ -47,7 +47,7 @@ def proposal_submit(request):
         try:
             request.user.speaker_profile
         except ObjectDoesNotExist:
-            url = reverse("symposion:speaker_create")
+            url = reverse("symposion_speakers:speaker_create")
             messages.info(request, _("To submit a proposal, first "
                                      "<a href='{0}'>create a speaker "
                                      "profile</a>.".format(url)))
