@@ -23,42 +23,32 @@ from symposion.utils import anonymous_review
 
 User = get_user_model()
 
-
-def score_expression():
-    ''' Produces a score range centred around 0 with a minimum of -1 and a
-    maximum of + 1.
-
-    This function can be overridden.
-    '''
-
-    score = (
-        (1.0 * F("strong_accept") + 0.5 * F("weak_accept")) -
-        (0.5 * F("weak_reject") + 1.0 * F("strong_reject"))
-    ) / (
-        F("vote_count") - F("abstain") * 1.0
-    )
-
-    return Case(
-        When(vote_count=F("abstain"), then=Value("0")),  # no divide by zero
-        default=score,
-    )
-
+# How we compute proposal scores: 3*(+1's) + (+0's) - (-0's) - 3*(-1's)
+PROPOSAL_SCORE_EXPRESSION = \
+    3 * F('plus_one') + F('plus_zero') - F('minus_zero') - 3 * F('minus_one')
 
 class Votes(object):
-    ABSTAIN = "0"
-    STRONG_ACCEPT = "++"
-    WEAK_ACCEPT = "+"
-    WEAK_REJECT = "-"
-    STRONG_REJECT = "--"
+    """
+    *** NOTE ***
+
+    The MINUS_ZERO and MINUS_ONE values here are using fancy Unicode
+    minus signs instead of ASCII minus sign/dashes.  This works fine so
+    long as everything using these does it consistently; just be careful
+    to use VOTES.MINUS_ZERO instead of writing out "-0" anywhere.
+    """
+    PLUS_ONE = "+1"
+    PLUS_ZERO = "+0"
+    MINUS_ZERO = u"−0"
+    MINUS_ONE = u"−1"
 
     CHOICES = [
-        (STRONG_ACCEPT, _("++ : Good proposal and I will argue for it to be accepted.")),
-        (WEAK_ACCEPT, _("+ : OK proposal, but I will not argue for it to be accepted.")),
-        (WEAK_REJECT, _("− : Weak proposal, but I will not argue strongly against acceptance.")),
-        (STRONG_REJECT, _("−- : Serious issues and I will argue to reject this proposal.")),
-        (ABSTAIN, _("Abstain : I do not want to review this proposal and I do not want to see it again.")),
+        (PLUS_ONE, u"+1 — Good proposal and I will argue for it to be accepted."),
+        (PLUS_ZERO, u"+0 — OK proposal, but I will not argue for it to be accepted."),
+        (MINUS_ZERO, u"−0 — Weak proposal, but I will not argue strongly against acceptance."),
+        (MINUS_ONE, u"−1 — Serious issues and I will argue to reject this proposal."),
     ]
 VOTES = Votes()
+
 
 
 class ReviewAssignment(models.Model):
@@ -159,14 +149,6 @@ class Review(models.Model):
     comment_html = models.TextField(blank=True)
     submitted_at = models.DateTimeField(default=datetime.now, editable=False, verbose_name=_("Submitted at"))
 
-    def clean(self):
-        err = {}
-        if self.vote != VOTES.ABSTAIN and not self.comment.strip():
-            err["comment"] = ValidationError(_("You must provide a comment"))
-
-        if err:
-            raise ValidationError(err)
-
     def save(self, **kwargs):
         self.comment_html = parse(self.comment)
         if self.vote:
@@ -224,11 +206,10 @@ class Review(models.Model):
 
     def css_class(self):
         return {
-            self.VOTES.ABSTAIN: "abstain",
-            self.VOTES.STRONG_ACCEPT: "strong-accept",
-            self.VOTES.WEAK_ACCEPT: "weak-accept",
-            self.VOTES.WEAK_REJECT: "weak-reject",
-            self.VOTES.STRONG_REJECT: "strong-reject",
+            self.VOTES.PLUS_ONE: "plus-one",
+            self.VOTES.PLUS_ZERO: "plus-zero",
+            self.VOTES.MINUS_ZERO: "minus-zero",
+            self.VOTES.MINUS_ONE: "minus-one",
         }[self.vote]
 
     @property
@@ -258,11 +239,10 @@ class LatestVote(models.Model):
 
     def css_class(self):
         return {
-            self.VOTES.ABSTAIN: "abstain",
-            self.VOTES.STRONG_ACCEPT: "strong-accept",
-            self.VOTES.WEAK_ACCEPT: "weak-accept",
-            self.VOTES.WEAK_REJECT: "weak-reject",
-            self.VOTES.STRONG_REJECT: "strong-reject",
+            self.VOTES.PLUS_ONE: "plus-one",
+            self.VOTES.PLUS_ZERO: "plus-zero",
+            self.VOTES.MINUS_ZERO: "minus-zero",
+            self.VOTES.MINUS_ONE: "minus-one",
         }[self.vote]
 
 
@@ -270,13 +250,11 @@ class ProposalResult(models.Model):
     proposal = models.OneToOneField(ProposalBase, related_name="result", verbose_name=_("Proposal"), on_delete=models.CASCADE)
     score = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal("0.00"), verbose_name=_("Score"))
     comment_count = models.PositiveIntegerField(default=0, verbose_name=_("Comment count"))
-    # vote_count only counts non-abstain votes.
     vote_count = models.PositiveIntegerField(default=0, verbose_name=_("Vote count"))
-    abstain = models.PositiveIntegerField(default=0, verbose_name=_("Abstain"))
-    strong_accept = models.PositiveIntegerField(default=0, verbose_name=_("Strong accept"))
-    weak_accept = models.PositiveIntegerField(default=0, verbose_name=_("Weak accept"))
-    weak_reject = models.PositiveIntegerField(default=0, verbose_name=_("Weak reject"))
-    strong_reject = models.PositiveIntegerField(default=0, verbose_name=_("Strong reject"))
+    plus_one = models.PositiveIntegerField(default=0)
+    plus_zero = models.PositiveIntegerField(default=0)
+    minus_zero = models.PositiveIntegerField(default=0)
+    minus_one = models.PositiveIntegerField(default=0)
     accepted = models.NullBooleanField(choices=[
         (True, "accepted"),
         (False, "rejected"),
@@ -311,15 +289,14 @@ class ProposalResult(models.Model):
         for d in agg:
             vote_count[d["vote"]] = d["count"]
 
-        self.abstain = vote_count[VOTES.ABSTAIN]
-        self.strong_accept = vote_count[VOTES.STRONG_ACCEPT]
-        self.weak_accept = vote_count[VOTES.WEAK_ACCEPT]
-        self.weak_reject = vote_count[VOTES.WEAK_REJECT]
-        self.strong_reject = vote_count[VOTES.STRONG_REJECT]
-        self.vote_count = sum(i[1] for i in vote_count.items()) - self.abstain
+        self.plus_one = vote_count[VOTES.PLUS_ONE]
+        self.plus_zero = vote_count[VOTES.PLUS_ZERO]
+        self.minus_zero = vote_count[VOTES.MINUS_ZERO]
+        self.minus_one = vote_count[VOTES.MINUS_ONE]
+        self.vote_count = sum(i[1] for i in vote_count.items())
         self.save()
         model = self.__class__
-        model._default_manager.filter(pk=self.pk).update(score=score_expression())
+        model._default_manager.filter(pk=self.pk).update(score=PROPOSAL_SCORE_EXPRESSION)
 
     class Meta:
         verbose_name = _("proposal_result")

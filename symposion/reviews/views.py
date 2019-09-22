@@ -47,10 +47,11 @@ def proposals_generator(request, queryset, user_pk=None, check_speaker=True):
         obj.comment_count = obj.result.comment_count
         obj.score = obj.result.score
         obj.total_votes = obj.result.vote_count
-        obj.strong_accept = obj.result.strong_accept
-        obj.weak_accept = obj.result.weak_accept
-        obj.weak_reject = obj.result.weak_reject
-        obj.strong_reject = obj.result.strong_reject
+        obj.plus_one = obj.result.plus_one
+        obj.plus_zero = obj.result.plus_zero
+        obj.minus_zero = obj.result.minus_zero
+        obj.minus_one = obj.result.minus_one
+
         lookup_params = dict(proposal=obj)
 
         if user_pk:
@@ -153,21 +154,21 @@ def review_admin(request, section_slug):
 
                 user.comment_count = Review.objects.filter(user=user).count()
                 user.total_votes = LatestVote.objects.filter(user=user).count()
-                user.strong_accept = LatestVote.objects.filter(
+                user.plus_one = LatestVote.objects.filter(
                     user=user,
-                    vote=LatestVote.VOTES.STRONG_ACCEPT
+                    vote=LatestVote.VOTES.PLUS_ONE
                 ).count()
-                user.weak_accept = LatestVote.objects.filter(
+                user.plus_zero = LatestVote.objects.filter(
                     user=user,
-                    vote=LatestVote.VOTES.WEAK_ACCEPT
+                    vote=LatestVote.VOTES.PLUS_ZERO
                 ).count()
-                user.weak_reject = LatestVote.objects.filter(
+                user.minus_zero = LatestVote.objects.filter(
                     user=user,
-                    vote=LatestVote.VOTES.WEAK_REJECT
+                    vote=LatestVote.VOTES.MINUS_ZERO
                 ).count()
-                user.strong_reject = LatestVote.objects.filter(
+                user.minus_one = LatestVote.objects.filter(
                     user=user,
-                    vote=LatestVote.VOTES.STRONG_REJECT
+                    vote=LatestVote.VOTES.MINUS_ONE
                 ).count()
 
                 yield user
@@ -277,10 +278,11 @@ def review_detail(request, pk):
 
     proposal.comment_count = proposal.result.comment_count
     proposal.total_votes = proposal.result.vote_count
-    proposal.strong_accept = proposal.result.strong_accept
-    proposal.weak_accept = proposal.result.weak_accept
-    proposal.weak_reject = proposal.result.weak_reject
-    proposal.strong_reject = proposal.result.strong_reject
+
+    proposal.plus_one = proposal.result.plus_one
+    proposal.plus_zero = proposal.result.plus_zero
+    proposal.minus_zero = proposal.result.minus_zero
+    proposal.minus_one = proposal.result.minus_one
 
     reviews = Review.objects.filter(proposal=proposal).order_by("-submitted_at")
     messages = proposal.messages.order_by("submitted_at")
