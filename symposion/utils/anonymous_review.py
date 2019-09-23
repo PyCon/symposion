@@ -17,8 +17,8 @@ class ProposalProxy(object):
             return None
         elif attr == "speakers":
             return self._speakers
-        elif attr in ("description", "description_html", "abstract", "abstract_html"):
-            return Parrot(self._redact(getattr(self.__proposal__, attr)))
+#        elif attr in ("description", "description_html", "abstract", "abstract_html"):
+#            return Parrot(self._redact(getattr(self.__proposal__, attr)))
         else:
             return getattr(self.__proposal__, attr)
 
