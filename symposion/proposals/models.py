@@ -100,7 +100,6 @@ class ProposalBase(models.Model):
     title = models.CharField(max_length=100, verbose_name=_("Title"))
     description = models.TextField(
         _("Brief Description"),
-        max_length=400,  # @@@ need to enforce 400 in UI
         blank=True,
         help_text=_("If your proposal is accepted this will be made public and printed in the "
                     "program. Should be one paragraph, maximum 400 characters."),
