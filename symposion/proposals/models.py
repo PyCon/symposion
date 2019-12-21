@@ -147,7 +147,10 @@ class ProposalBase(models.Model):
         return super(ProposalBase, self).save(*args, **kwargs)
 
     def can_edit(self):
-        return True
+        proposal_section = ProposalSection.objects.filter(section=self.kind.section).first()
+        if proposal_section.is_available():
+            return True
+        return False
 
     @property
     def section(self):
