@@ -290,7 +290,8 @@ def review_detail(request, pk):
     # Anonymize the proposal if needs be.
     proposal = proposal.redacted()
 
-    messages = [anonymous_review.MessageProxy(message) for message in messages]
+    if proposal.anonymous_review():
+        messages = [anonymous_review.MessageProxy(message) for message in messages]
 
     return render(request, "symposion/reviews/review_detail.html", {
         "proposal": proposal,

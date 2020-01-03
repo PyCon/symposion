@@ -52,8 +52,12 @@ class MessageProxy(object):
         message = self.__message__
 
         if attr == "user":
-            if message.user.speaker_profile in message.proposal.speakers():
-                return Parrot("A Speaker")
+            if hasattr(message.user, "speaker_profile"):
+                if message.user.speaker_profile in message.proposal.speakers():
+                  user = Parrot("A Speaker")
+            else:
+                user = message.user
+            return user
 
         return getattr(message, attr)
 
