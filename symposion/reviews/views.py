@@ -1,8 +1,10 @@
+from django.contrib import messages as django_messages
 from django.core.mail import send_mass_mail
 from django.db.models import Q
 from django.http import HttpResponseBadRequest, HttpResponseNotAllowed
 from django.shortcuts import render, redirect, get_object_or_404
 from django.template import Context, Template
+from django.urls import reverse
 from django.views.decorators.http import require_POST
 
 from django.contrib.auth.decorators import login_required
@@ -80,8 +82,26 @@ def review_section(request, section_slug, assigned=False, reviewed="all"):
     if not request.user.has_perm("reviews.can_review_%s" % section_slug):
         return access_not_permitted(request)
 
+    can_manage = False
+    if request.user.has_perm("reviews.can_manage_%s" % section_slug):
+        can_manage = True
     section = get_object_or_404(ProposalSection, section__slug=section_slug)
-    queryset = ProposalBase.objects.filter(kind__section=section.section)
+    queryset = ProposalBase.objects.filter(kind__section=section.section).select_related('kind', 'result', 'speaker__user')
+
+    if request.method == "POST" and can_manage:
+        pk_string = request.POST.get('pk', request.POST.get('pks', ''))
+        if pk_string != '':
+            pk_list = [int(i) for i in pk_string.split(',')]
+            for pk in pk_list:
+                status = request.POST['status']
+                proposal = queryset.get(pk=pk)
+                proposal.result.status = status
+                proposal.result.save()
+        else:
+            django_messages.error(request, _("Please select at least one application"))
+
+        url_name = "symposion:review_section_assignments" if assigned else "symposion:review_section"
+        return redirect(reverse(url_name, kwargs={'section_slug': section_slug}))
 
     if assigned:
         assignments = ReviewAssignment.objects.filter(user=request.user)\
@@ -107,6 +127,13 @@ def review_section(request, section_slug, assigned=False, reviewed="all"):
         "proposals": proposals,
         "section": section,
         "reviewed": reviewed,
+        "can_manage": can_manage,
+        "status_options": [
+            ('accepted', "Accepted"),
+            ('rejected', "Rejected"),
+            ('undecided', "Undecided"),
+            ('standby', "Standby"),
+        ],
     }
 
     return render(request, "symposion/reviews/review_list.html", ctx)
