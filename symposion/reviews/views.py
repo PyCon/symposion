@@ -342,7 +342,7 @@ def review_delete(request, pk):
     review = get_object_or_404(Review, pk=pk)
     review.delete()
 
-    return redirect("review_detail", pk=review.proposal.pk)
+    return redirect("symposion:review_detail", pk=review.proposal.pk)
 
 
 @login_required
@@ -426,7 +426,7 @@ def review_assignment_opt_out(request, pk):
         review_assignment.save()
         ReviewAssignment.create_assignments(
             review_assignment.proposal, origin=ReviewAssignment.AUTO_ASSIGNED_LATER)
-    return redirect("review_assignments")
+    return redirect("symposion:review_assignments")
 
 
 @login_required
@@ -441,7 +441,7 @@ def review_bulk_accept(request, section_slug):
             for talk in talks:
                 talk.result.status = "accepted"
                 talk.result.save()
-            return redirect("review_section", section_slug=section_slug)
+            return redirect("symposion:review_section", section_slug=section_slug)
     else:
         form = BulkPresentationForm()
 
@@ -559,4 +559,4 @@ def result_notification_send(request, section_slug, status):
 
     send_mass_mail(emails)
 
-    return redirect("result_notification", section_slug=section_slug, status=status)
+    return redirect("symposion:result_notification", section_slug=section_slug, status=status)
