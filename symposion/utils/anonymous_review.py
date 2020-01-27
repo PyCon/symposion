@@ -55,6 +55,8 @@ class MessageProxy(object):
             if hasattr(message.user, "speaker_profile"):
                 if message.user.speaker_profile in message.proposal.speakers():
                   user = Parrot("A Speaker")
+                else:
+                  user = message.user
             else:
                 user = message.user
             return user
