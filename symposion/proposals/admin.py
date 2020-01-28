@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 # from symposion.proposals.actions import export_as_csv_action
-from symposion.proposals.models import ProposalSection, ProposalKind
+from symposion.proposals.models import AdditionalSpeaker, ProposalSection, ProposalKind
 
 
 # admin.site.register(Proposal,
@@ -27,6 +27,12 @@ from symposion.proposals.models import ProposalSection, ProposalKind
 #     ])]
 # )
 
-
 admin.site.register(ProposalSection)
 admin.site.register(ProposalKind)
+
+class AdditionalSpeakerAdmin(admin.ModelAdmin):
+    list_display = ['speaker', 'proposalbase', 'status']
+    list_filter = ['status']
+    search_fields = ['proposalbase']
+
+admin.site.register(AdditionalSpeaker, AdditionalSpeakerAdmin)
