@@ -160,7 +160,7 @@ def schedule_slot_edit(request, slug, slot_pk):
                     slot.assign(presentation)
             if save:
                 slot.save()
-        return redirect("schedule_edit", slug)
+        return redirect("symposion_schedules:schedule_edit", slug)
     else:
         form = SlotEditForm(slot=slot)
         ctx = {
@@ -261,7 +261,7 @@ def session_list(request):
 def session_staff_email(request):
 
     if not request.user.is_staff:
-        return redirect("schedule_session_list")
+        return redirect("symposion_schedules:schedule_session_list")
 
     data = "\n".join(user.email for user in User.objects.filter(sessionrole__isnull=False).distinct())
 
@@ -318,7 +318,7 @@ def session_detail(request, session_id):
                 if session_role:
                     session_role[0].delete()
 
-        return redirect("schedule_session_detail", session_id)
+        return redirect("symposion_schedules:schedule_session_detail", session_id)
 
     return render(request, "symposion/schedule/session_detail.html", {
         "session": session,

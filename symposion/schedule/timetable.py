@@ -47,5 +47,5 @@ class TimeTable(object):
 
 def pairwise(iterable):
     a, b = itertools.tee(iterable)
-    b.next()
-    return itertools.izip_longest(a, b)
+    b.__next__()
+    return itertools.zip_longest(a, b)

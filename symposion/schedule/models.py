@@ -150,7 +150,7 @@ class Slot(models.Model):
         return Room.objects.filter(pk__in=self.slotroom_set.values("room"))
 
     def save(self, *args, **kwargs):
-        roomlist = ' '.join(map(lambda r: r.__unicode__(), self.rooms))
+        roomlist = ' '.join(map(lambda r: r.__str__(), self.rooms))
         self.name = "%s %s (%s - %s) %s" % (self.day, self.kind, self.start, self.end, roomlist)
         self.content_override_html = parse(self.content_override)
         super(Slot, self).save(*args, **kwargs)
