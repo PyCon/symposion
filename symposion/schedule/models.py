@@ -85,7 +85,7 @@ class SlotKind(models.Model):
 @python_2_unicode_compatible
 class Slot(models.Model):
 
-    name = models.CharField(max_length=100, editable=False)
+    name = models.CharField(max_length=256, editable=False)
     day = models.ForeignKey(Day, verbose_name=_("Day"), on_delete=models.CASCADE)
     kind = models.ForeignKey(SlotKind, verbose_name=_("Kind"), on_delete=models.CASCADE)
     start = models.TimeField(verbose_name=_("Start"))
