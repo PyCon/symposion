@@ -40,7 +40,7 @@ class Day(models.Model):
     date = models.DateField(verbose_name=_("Date"))
 
     def __str__(self):
-        return "%s" % self.date
+        return "%s - %s" % (self.schedule.section.slug, self.date)
 
     class Meta:
         unique_together = [("schedule", "date")]
@@ -57,7 +57,7 @@ class Room(models.Model):
     order = models.PositiveIntegerField(verbose_name=_("Order"))
 
     def __str__(self):
-        return self.name
+        return "%s - %s" % (self.schedule.section.slug, self.name)
 
     class Meta:
         verbose_name = _("Room")
@@ -75,7 +75,7 @@ class SlotKind(models.Model):
     label = models.CharField(max_length=50, verbose_name=_("Label"))
 
     def __str__(self):
-        return self.label
+        return "%s - %s" % (self.schedule.section.slug, self.label)
 
     class Meta:
         verbose_name = _("Slot kind")
@@ -156,7 +156,7 @@ class Slot(models.Model):
         super(Slot, self).save(*args, **kwargs)
 
     def __str__(self):
-        return self.name
+        return "%s - %s" % (self.day.schedule.section.slug, self.name)
 
     class Meta:
         ordering = ["day", "start", "end"]
@@ -174,7 +174,7 @@ class SlotRoom(models.Model):
     room = models.ForeignKey(Room, verbose_name=_("Room"), on_delete=models.CASCADE)
 
     def __str__(self):
-        return "%s %s" % (self.room, self.slot)
+        return "%s - %s %s" % (self.room.schedule.section.slug, self.room, self.slot)
 
     class Meta:
         unique_together = [("slot", "room")]
