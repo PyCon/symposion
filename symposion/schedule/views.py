@@ -16,6 +16,8 @@ from symposion.schedule.forms import SlotEditForm, ScheduleSectionForm
 from symposion.schedule.models import Schedule, Day, Slot, Presentation, Session, SessionRole
 from symposion.schedule.timetable import TimeTable
 
+from pycon.api.decorators import api_view
+
 
 def fetch_schedule(slug):
     qs = Schedule.objects.all()
@@ -278,7 +280,7 @@ def session_detail(request, session_id):
     if chairs:
         chair = chairs[0].user
     else:
-        if request.user.is_authenticated():
+        if request.user.is_authenticated:
             # did the current user previously try to apply and got rejected?
             if SessionRole.objects.filter(session=session, user=request.user, role=SessionRole.SESSION_ROLE_CHAIR, status=False):
                 chair_denied = True
@@ -289,13 +291,13 @@ def session_detail(request, session_id):
     if runners:
         runner = runners[0].user
     else:
-        if request.user.is_authenticated():
+        if request.user.is_authenticated:
             # did the current user previously try to apply and got rejected?
             if SessionRole.objects.filter(session=session, user=request.user, role=SessionRole.SESSION_ROLE_RUNNER, status=False):
                 runner_denied = True
 
-    if request.method == "POST" and request.user.is_authenticated():
-        if not hasattr(request.user, "profile") or not request.user.profile.is_complete:
+    if request.method == "POST" and request.user.is_authenticated:
+        if not hasattr(request.user, "volunteer_profile") or not request.user.volunteer_profile.is_complete:
             response = redirect("profile_edit")
             response["Location"] += "?next=%s" % request.path
             return response
@@ -327,3 +329,60 @@ def session_detail(request, session_id):
         "runner": runner,
         "runner_denied": runner_denied,
     })
+
+
+@api_view
+def session_staff_json(request):
+    """
+    Return session runners and chairs in JSON format.
+
+    Requires API Key.
+
+    URL: /<YEAR>/schedule/session-staff.json
+
+    The data returned is in JSON format, and looks like::
+
+        {
+            'code': 200,
+            'data': [<slotdata>, <slotdata>, ..., <slotdata>]
+        }
+
+    where each `<slotdata>` looks like::
+
+        {
+            "conf_key": 123, // fk into conference.json
+            "chair_name": "Jane Smith",
+            "chair_email": "jane@smith.net"
+            "runner_name": "John Doe",
+            "runner_email": "john@doe.net"
+        }
+
+    The conf_key is the same as the conf_key returned for talks by the
+    `schedule_json` API.
+    """
+    data = []
+    for slot in Slot.objects.all().order_by("start"):
+        for session in slot.sessions.all():
+            item = {
+                'conf_key': slot.pk
+            }
+            roles = session.sessionrole_set.exclude(status=False)
+
+            chair = roles.filter(role=SessionRole.SESSION_ROLE_CHAIR).first()
+            if chair:
+                item['chair_name'] = chair.user.get_full_name()
+                item['chair_email'] = chair.user.email
+            else:
+                item['chair_name'] = ""
+                item['chair_email'] = ""
+
+            runner = roles.filter(role=SessionRole.SESSION_ROLE_RUNNER).first()
+            if runner:
+                item['runner_name'] = runner.user.get_full_name()
+                item['runner_email'] = runner.user.email
+            else:
+                item['runner_name'] = ""
+                item['runner_email'] = ""
+            data.append(item)
+
+    return (data, 200)

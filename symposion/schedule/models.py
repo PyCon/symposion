@@ -262,6 +262,12 @@ class Session(models.Model):
             )
         return ""
 
+    @property
+    def needs_volunteers(self):
+        chair = SessionRole.objects.filter(session=self, role=SessionRole.SESSION_ROLE_CHAIR).exclude(status=False)
+        runner = SessionRole.objects.filter(session=self, role=SessionRole.SESSION_ROLE_RUNNER).exclude(status=False)
+        return not (chair and runner)
+
     class Meta:
         verbose_name = _("Session")
         verbose_name_plural = _("Sessions")
