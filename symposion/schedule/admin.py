@@ -37,6 +37,7 @@ class RoomAdmin(admin.ModelAdmin):
 
 class PresentationAdmin(admin.ModelAdmin):
     model = Presentation
+    search_fields = ["title"]
     list_filter = ("section", "cancelled", "slot")
 
 
