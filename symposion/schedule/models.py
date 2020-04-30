@@ -190,7 +190,7 @@ class Presentation(models.Model):
     title = models.CharField(max_length=100, verbose_name=_("Title"))
     description = models.TextField(verbose_name=_("Description"))
     description_html = models.TextField(blank=True)
-    abstract = models.TextField(verbose_name=_("Abstract"))
+    abstract = models.TextField(blank=True, verbose_name=_("Abstract"))
     abstract_html = models.TextField(blank=True)
     speaker = models.ForeignKey(Speaker, related_name="presentations", verbose_name=_("Speaker"), on_delete=models.CASCADE)
     additional_speakers = models.ManyToManyField(Speaker, related_name="copresentations",
@@ -198,6 +198,7 @@ class Presentation(models.Model):
     cancelled = models.BooleanField(default=False, verbose_name=_("Cancelled"))
     proposal_base = models.OneToOneField(ProposalBase, related_name="presentation", verbose_name=_("Proposal base"), on_delete=models.CASCADE)
     section = models.ForeignKey(Section, related_name="presentations", verbose_name=_("Section"), on_delete=models.CASCADE)
+    youtube_link = models.CharField(max_length=128, null=True, blank=True)
 
     def save(self, *args, **kwargs):
         self.description_html = parse(self.description)
