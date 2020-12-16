@@ -7,7 +7,6 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models.signals import post_init, post_save
 from django.urls import reverse
-from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 
 from django.contrib.auth import get_user_model
@@ -47,7 +46,6 @@ BENEFITS = [
 ]
 
 
-@python_2_unicode_compatible
 class SponsorLevel(models.Model):
 
     conference = models.ForeignKey(Conference, verbose_name=_("Conference"), on_delete=models.CASCADE)
@@ -68,7 +66,6 @@ class SponsorLevel(models.Model):
         return self.sponsor_set.filter(active=True).order_by("added")
 
 
-@python_2_unicode_compatible
 class Sponsor(models.Model):
 
     applicant = models.ForeignKey(User, related_name="sponsorships", verbose_name=_("Applicant"),
@@ -230,7 +227,6 @@ CONTENT_TYPE_CHOICES = [
 ]
 
 
-@python_2_unicode_compatible
 class Benefit(models.Model):
 
     name = models.CharField(_("Name"), max_length=100)
@@ -244,7 +240,6 @@ class Benefit(models.Model):
         return self.name
 
 
-@python_2_unicode_compatible
 class BenefitLevel(models.Model):
 
     benefit = models.ForeignKey(Benefit, related_name="benefit_levels", verbose_name=_("Benefit"), on_delete=models.CASCADE)
@@ -263,7 +258,6 @@ class BenefitLevel(models.Model):
         return "%s - %s" % (self.level, self.benefit)
 
 
-@python_2_unicode_compatible
 class SponsorBenefit(models.Model):
 
     sponsor = models.ForeignKey(Sponsor, related_name="sponsor_benefits", verbose_name=_("Sponsor"), on_delete=models.CASCADE)

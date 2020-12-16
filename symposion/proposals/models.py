@@ -5,7 +5,6 @@ import uuid
 from django.db import models
 from django.db.models import Q
 from django.urls import reverse
-from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 from django.utils.timezone import now
 
@@ -26,7 +25,6 @@ from symposion.utils import anonymous_review
 User = get_user_model()
 
 
-@python_2_unicode_compatible
 class ProposalSection(models.Model):
     """
     configuration of proposal submissions for a specific Section.
@@ -72,7 +70,6 @@ class ProposalSection(models.Model):
         return self.section.name
 
 
-@python_2_unicode_compatible
 class ProposalKind(models.Model):
     """
     e.g. talk vs panel vs tutorial vs poster
@@ -90,7 +87,6 @@ class ProposalKind(models.Model):
         return self.name
 
 
-@python_2_unicode_compatible
 class ProposalBase(models.Model):
 
     objects = InheritanceManager()
@@ -211,7 +207,6 @@ class ProposalBase(models.Model):
 reversion.register(ProposalBase)
 
 
-@python_2_unicode_compatible
 class AdditionalSpeaker(models.Model):
 
     SPEAKING_STATUS_PENDING = 1

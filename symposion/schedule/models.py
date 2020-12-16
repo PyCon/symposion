@@ -4,7 +4,6 @@ import datetime
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
-from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 
 from django.contrib.auth import get_user_model
@@ -17,7 +16,6 @@ from symposion.speakers.models import SpeakerBase as Speaker
 User = get_user_model()
 
 
-@python_2_unicode_compatible
 class Schedule(models.Model):
 
     section = models.OneToOneField(Section, verbose_name=_("Section"), on_delete=models.CASCADE)
@@ -33,7 +31,6 @@ class Schedule(models.Model):
         verbose_name_plural = _('Schedules')
 
 
-@python_2_unicode_compatible
 class Day(models.Model):
 
     schedule = models.ForeignKey(Schedule, verbose_name=_("Schedule"), on_delete=models.CASCADE)
@@ -49,7 +46,6 @@ class Day(models.Model):
         verbose_name_plural = _("dates")
 
 
-@python_2_unicode_compatible
 class Room(models.Model):
 
     schedule = models.ForeignKey(Schedule, verbose_name=_("Schedule"), on_delete=models.CASCADE)
@@ -64,7 +60,6 @@ class Room(models.Model):
         verbose_name_plural = _("Rooms")
 
 
-@python_2_unicode_compatible
 class SlotKind(models.Model):
     """
     A slot kind represents what kind a slot is. For example, a slot can be a
@@ -82,7 +77,6 @@ class SlotKind(models.Model):
         verbose_name_plural = _("Slot kinds")
 
 
-@python_2_unicode_compatible
 class Slot(models.Model):
 
     name = models.CharField(max_length=256, editable=False)
@@ -164,7 +158,6 @@ class Slot(models.Model):
         verbose_name_plural = _("slots")
 
 
-@python_2_unicode_compatible
 class SlotRoom(models.Model):
     """
     Links a slot with a room.
@@ -183,7 +176,6 @@ class SlotRoom(models.Model):
         verbose_name_plural = _("Slot rooms")
 
 
-@python_2_unicode_compatible
 class Presentation(models.Model):
 
     slot = models.OneToOneField(Slot, null=True, blank=True, related_name="content_ptr", verbose_name=_("Slot"), on_delete=models.CASCADE)
@@ -229,7 +221,6 @@ class Presentation(models.Model):
         verbose_name_plural = _("presentations")
 
 
-@python_2_unicode_compatible
 class Session(models.Model):
 
     day = models.ForeignKey(Day, related_name="sessions", verbose_name=_("Day"), on_delete=models.CASCADE)
@@ -274,7 +265,6 @@ class Session(models.Model):
         verbose_name_plural = _("Sessions")
 
 
-@python_2_unicode_compatible
 class SessionRole(models.Model):
 
     SESSION_ROLE_CHAIR = 1

@@ -6,7 +6,6 @@ import os
 from django.db import models
 from django.urls import reverse
 from django.utils.deconstruct import deconstructible
-from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 
 from django.contrib.auth import get_user_model
@@ -45,7 +44,6 @@ class UploadToPathAndRename(object):
         return os.path.join(self.sub_path, filename)
 
 
-@python_2_unicode_compatible
 class SpeakerBase(models.Model):
     ''' Base class for conference speaker profiles. This model is not meant to
     be used directly; it merely contains the default fields that every
@@ -113,7 +111,6 @@ class SpeakerBase(models.Model):
         return presentations
 
 
-#@python_2_unicode_compatible
 class DefaultSpeaker(SpeakerBase):
 
     def clean_twitter_username(self):
