@@ -68,11 +68,18 @@ def proposal_submit_kind(request, kind_slug):
     kind = get_object_or_404(ProposalKind, slug=kind_slug)
 
     if not request.user.is_authenticated:
+        messages.info(request, _("To submit a proposal, please "
+                                 "<a href='{0}'>log in</a> and create a speaker profile "
+                                 "via the dashboard.".format(settings.LOGIN_URL)))
         return redirect("home")  # @@@ unauth'd speaker info page?
     else:
         try:
             speaker_profile = request.user.speaker_profile
         except ObjectDoesNotExist:
+            url = reverse("symposion_speakers:speaker_create")
+            messages.info(request, _("To submit a proposal, first "
+                                     "<a href='{0}'>create a speaker "
+                                     "profile</a>.".format(url)))
             return redirect("dashboard")
 
     if not kind.section.proposalsection.is_available():
