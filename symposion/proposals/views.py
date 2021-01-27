@@ -39,9 +39,10 @@ SpeakerModel = speaker_model()
 
 def proposal_submit(request):
     if not request.user.is_authenticated:
+        login_url = reverse(settings.LOGIN_URL)
         messages.info(request, _("To submit a proposal, please "
                                  "<a href='{0}'>log in</a> and create a speaker profile "
-                                 "via the dashboard.".format(settings.LOGIN_URL)))
+                                 "via the dashboard.".format(login_url)))
         return redirect("home")  # @@@ unauth'd speaker info page?
     else:
         try:
@@ -68,9 +69,10 @@ def proposal_submit_kind(request, kind_slug):
     kind = get_object_or_404(ProposalKind, slug=kind_slug)
 
     if not request.user.is_authenticated:
+        login_url = reverse(settings.LOGIN_URL)
         messages.info(request, _("To submit a proposal, please "
                                  "<a href='{0}'>log in</a> and create a speaker profile "
-                                 "via the dashboard.".format(settings.LOGIN_URL)))
+                                 "via the dashboard.".format(login_url)))
         return redirect("home")  # @@@ unauth'd speaker info page?
     else:
         try:
